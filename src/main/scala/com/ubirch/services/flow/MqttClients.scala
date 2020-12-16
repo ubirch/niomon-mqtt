@@ -49,7 +49,7 @@ class DefaultMqttClients @Inject() (config: Config, lifecycle: Lifecycle) extend
         logger.info(s"mqtt_connected=OK @ $broker")
         p.countDown()
       }, (_, e) => {
-        logger.error("error_connecting=", e)
+        logger.error(s"error_connecting to $broker", e)
         p.countDown()
       }))
       client
