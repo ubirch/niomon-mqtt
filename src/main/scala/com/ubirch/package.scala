@@ -1,7 +1,6 @@
 package com
 
 import java.util.UUID
-
 import scala.util.control.NoStackTrace
 
 package object ubirch {

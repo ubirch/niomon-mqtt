@@ -1,7 +1,5 @@
 package com.ubirch.services.flow
 
-import java.util.UUID
-
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import com.ubirch.ConfPaths.FlowInProducerConfPaths
@@ -9,13 +7,14 @@ import com.ubirch.FailedKafkaPublish
 import com.ubirch.kafka.express.ExpressProducer
 import com.ubirch.kafka.producer.{ ProducerRunner, WithProducerShutdownHook }
 import com.ubirch.services.lifeCycle.Lifecycle
-import javax.inject._
 import monix.eval.Task
 import monix.execution.{ CancelableFuture, Scheduler }
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.serialization.{ ByteArraySerializer, Serializer, StringSerializer }
 import org.json4s.{ DefaultFormats, Formats }
 
+import java.util.UUID
+import javax.inject._
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration.{ FiniteDuration, _ }
 import scala.language.postfixOps

@@ -1,12 +1,11 @@
 package com.ubirch
 
-import java.util.concurrent.Executors
-
 import monix.execution.Scheduler
 import monix.reactive.Observable
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach, MustMatchers, WordSpec }
 
+import java.util.concurrent.Executors
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, ExecutionContext, ExecutionContextExecutor, Future }
 

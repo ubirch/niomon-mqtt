@@ -30,6 +30,7 @@ class Binder
   def JVMHook: ScopedBindingBuilder = bind(classOf[JVMHook]).to(classOf[DefaultJVMHook])
   def JsonConverterService: ScopedBindingBuilder = bind(classOf[JsonConverterService]).to(classOf[DefaultJsonConverterService])
   def KafkaFlowOut: ScopedBindingBuilder = bind(classOf[KafkaFlowOut]).to(classOf[DefaultKafkaFlowOut])
+  def MqttPublisher: ScopedBindingBuilder = bind(classOf[MqttPublisher]).to(classOf[DefaultMqttPublisher])
   def KafkaFlowIn: ScopedBindingBuilder = bind(classOf[KafkaFlowIn]).to(classOf[DefaultKafkaFlowIn])
   def MqttFlowIn: ScopedBindingBuilder = bind(classOf[MqttFlowIn]).to(classOf[DefaultMqttFlowIn])
   def MqttFlowOut: ScopedBindingBuilder = bind(classOf[MqttFlowOut]).to(classOf[DefaultMqttFlowOut])
@@ -45,6 +46,7 @@ class Binder
     JVMHook
     JsonConverterService
     MqttClients
+    MqttPublisher
     KafkaFlowIn
     KafkaFlowOut
     MqttFlowIn

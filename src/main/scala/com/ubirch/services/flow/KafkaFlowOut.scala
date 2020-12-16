@@ -1,22 +1,21 @@
 package com.ubirch.services.flow
 
-import java.util.UUID
-
 import com.google.protobuf.ByteString
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import com.ubirch.ConfPaths.{ FlowOutConsumerConfPaths, FlowOutProducerConfPaths, GenericConfPaths }
 import com.ubirch.kafka.consumer.WithConsumerShutdownHook
 import com.ubirch.kafka.express.ExpressKafka
-import com.ubirch.kafka.util.Implicits.enrichedConsumerRecord
 import com.ubirch.kafka.producer.WithProducerShutdownHook
+import com.ubirch.kafka.util.Implicits.enrichedConsumerRecord
 import com.ubirch.models.FlowOutPayload
 import com.ubirch.services.lifeCycle.Lifecycle
 import com.ubirch.util.ServiceMetrics
 import io.prometheus.client.Counter
-import javax.inject._
 import org.apache.kafka.common.serialization._
 
+import java.util.UUID
+import javax.inject._
 import scala.concurrent.ExecutionContext
 import scala.util.Try
 
@@ -76,6 +75,7 @@ class DefaultKafkaFlowOut @Inject() (
         requestId <- cr.findHeader("request-id").flatMap(x => Try(UUID.fromString(x)).toOption)
         status <- cr.findHeader("http-status-code")
       } yield {
+        logger.info(s"msg_back=$requestId")
         mqttFlowOut.process(deviceId, requestId, FlowOutPayload(status, ByteString.copyFrom(cr.value())))
       }
     }
