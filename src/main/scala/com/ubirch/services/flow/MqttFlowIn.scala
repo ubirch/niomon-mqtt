@@ -1,4 +1,4 @@
-package com.ubirch.services.mqtt
+package com.ubirch.services.flow
 
 import java.nio.file.Paths
 import java.util.UUID
@@ -7,7 +7,6 @@ import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import com.ubirch.ConfPaths.MqttConf
 import com.ubirch.models.FlowInPayload
-import com.ubirch.services.kafka.KafkaFlowIn
 import javax.inject.{ Inject, Singleton }
 import org.eclipse.paho.client.mqttv3.MqttMessage
 

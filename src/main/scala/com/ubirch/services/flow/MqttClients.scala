@@ -1,4 +1,4 @@
-package com.ubirch.services.mqtt
+package com.ubirch.services.flow
 
 import java.util.concurrent.{ CountDownLatch, TimeUnit }
 
@@ -7,8 +7,8 @@ import com.typesafe.scalalogging.LazyLogging
 import com.ubirch.ConfPaths.MqttConf
 import com.ubirch.services.lifeCycle.Lifecycle
 import javax.inject._
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 import org.eclipse.paho.client.mqttv3._
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 
 import scala.concurrent.Future
 

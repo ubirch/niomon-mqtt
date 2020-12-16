@@ -5,10 +5,9 @@ import com.google.inject.{ AbstractModule, Module }
 import com.typesafe.config.Config
 import com.ubirch.services.config.ConfigProvider
 import com.ubirch.services.execution.{ ExecutionProvider, SchedulerProvider }
+import com.ubirch.services.flow._
 import com.ubirch.services.formats.{ DefaultJsonConverterService, JsonConverterService, JsonFormatsProvider }
-import com.ubirch.services.kafka.{ DefaultKafkaFlowIn, DefaultKafkaFlowOut, KafkaFlowIn, KafkaFlowOut }
 import com.ubirch.services.lifeCycle.{ DefaultJVMHook, DefaultLifecycle, JVMHook, Lifecycle }
-import com.ubirch.services.mqtt.{ DefaultMqttClients, DefaultMqttFlowIn, MqttClients, MqttFlowIn }
 import com.ubirch.services.rest.SwaggerProvider
 import monix.execution.Scheduler
 import org.json4s.Formats

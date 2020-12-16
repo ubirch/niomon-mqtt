@@ -1,5 +1,4 @@
-package com.ubirch
-package services.kafka
+package com.ubirch.services.flow
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging

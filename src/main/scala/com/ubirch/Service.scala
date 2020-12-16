@@ -3,8 +3,7 @@ package com.ubirch
 import java.util.concurrent.CountDownLatch
 
 import com.typesafe.scalalogging.LazyLogging
-import com.ubirch.services.kafka.KafkaFlowOut
-import com.ubirch.services.mqtt.MqttFlowIn
+import com.ubirch.services.flow.{ KafkaFlowOut, MqttFlowIn }
 import com.ubirch.services.rest.RestService
 import javax.inject.{ Inject, Singleton }
 
