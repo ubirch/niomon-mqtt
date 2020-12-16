@@ -55,7 +55,8 @@ object ConfPaths {
     final val QOS = "niomon-mqtt.mqtt.qualityOfService"
     final val USER_NAME = "niomon-mqtt.mqtt.userName"
     final val PASSWORD = "niomon-mqtt.mqtt.password"
-    final val QUEUE_PREFIX = "niomon-mqtt.mqtt.queuePrefix"
+    final val IN_QUEUE_PREFIX = "niomon-mqtt.mqtt.inQueuePrefix"
+    final val OUT_QUEUE_PREFIX = "niomon-mqtt.mqtt.outQueuePrefix"
   }
 
   object GenericConfPaths extends GenericConfPaths

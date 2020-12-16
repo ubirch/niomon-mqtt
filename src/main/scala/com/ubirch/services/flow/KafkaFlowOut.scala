@@ -1,11 +1,16 @@
 package com.ubirch.services.flow
 
+import java.util.UUID
+
+import com.google.protobuf.ByteString
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import com.ubirch.ConfPaths.{ FlowOutConsumerConfPaths, FlowOutProducerConfPaths, GenericConfPaths }
 import com.ubirch.kafka.consumer.WithConsumerShutdownHook
 import com.ubirch.kafka.express.ExpressKafka
+import com.ubirch.kafka.util.Implicits.enrichedConsumerRecord
 import com.ubirch.kafka.producer.WithProducerShutdownHook
+import com.ubirch.models.FlowOutPayload
 import com.ubirch.services.lifeCycle.Lifecycle
 import com.ubirch.util.ServiceMetrics
 import io.prometheus.client.Counter
@@ -13,6 +18,7 @@ import javax.inject._
 import org.apache.kafka.common.serialization._
 
 import scala.concurrent.ExecutionContext
+import scala.util.Try
 
 abstract class KafkaFlowOut(val config: Config, lifecycle: Lifecycle)
   extends ExpressKafka[String, Array[Byte], Unit]
@@ -57,13 +63,22 @@ abstract class KafkaFlowOut(val config: Config, lifecycle: Lifecycle)
 
 @Singleton
 class DefaultKafkaFlowOut @Inject() (
+    mqttFlowOut: MqttFlowOut,
     config: Config,
     lifecycle: Lifecycle
 )(implicit val ec: ExecutionContext) extends KafkaFlowOut(config, lifecycle) {
 
   override val process: Process = Process { crs =>
 
-    crs.foreach { _ => }
+    crs.foreach { cr =>
+      for {
+        deviceId <- cr.findHeader("x-ubirch-hardware-id").flatMap(x => Try(UUID.fromString(x)).toOption)
+        requestId <- cr.findHeader("request-id").flatMap(x => Try(UUID.fromString(x)).toOption)
+        status <- cr.findHeader("http-status-code")
+      } yield {
+        mqttFlowOut.process(deviceId, requestId, FlowOutPayload(status, ByteString.copyFrom(cr.value())))
+      }
+    }
 
   }
 

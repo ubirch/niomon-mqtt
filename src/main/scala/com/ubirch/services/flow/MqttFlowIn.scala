@@ -17,7 +17,7 @@ trait MqttFlowIn {
 @Singleton
 class DefaultMqttFlowIn @Inject() (config: Config, mqttClients: MqttClients, kafkaFlowIn: KafkaFlowIn) extends MqttFlowIn with LazyLogging {
 
-  private val topic = Paths.get(config.getString(MqttConf.QUEUE_PREFIX), "+").toString
+  private val topic = Paths.get(config.getString(MqttConf.IN_QUEUE_PREFIX), "+").toString
   private val qos = config.getInt(MqttConf.QOS)
 
   if (mqttClients.async.isConnected) {

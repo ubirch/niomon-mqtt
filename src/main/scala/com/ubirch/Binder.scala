@@ -32,6 +32,7 @@ class Binder
   def KafkaFlowOut: ScopedBindingBuilder = bind(classOf[KafkaFlowOut]).to(classOf[DefaultKafkaFlowOut])
   def KafkaFlowIn: ScopedBindingBuilder = bind(classOf[KafkaFlowIn]).to(classOf[DefaultKafkaFlowIn])
   def MqttFlowIn: ScopedBindingBuilder = bind(classOf[MqttFlowIn]).to(classOf[DefaultMqttFlowIn])
+  def MqttFlowOut: ScopedBindingBuilder = bind(classOf[MqttFlowOut]).to(classOf[DefaultMqttFlowOut])
   def MqttClients: ScopedBindingBuilder = bind(classOf[MqttClients]).to(classOf[DefaultMqttClients])
 
   def configure(): Unit = {
@@ -44,9 +45,10 @@ class Binder
     JVMHook
     JsonConverterService
     MqttClients
-    KafkaFlowOut
     KafkaFlowIn
+    KafkaFlowOut
     MqttFlowIn
+    MqttFlowOut
   }
 
 }

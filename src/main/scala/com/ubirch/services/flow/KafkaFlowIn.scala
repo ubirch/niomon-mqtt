@@ -70,6 +70,8 @@ abstract class KafkaFlowInImpl(config: Config, lifecycle: Lifecycle)
   override def publish(deviceId: UUID, password: String, upp: Array[Byte]): Task[RecordMetadata] = Task.defer {
     Task.fromFuture {
       send(producerTopic, upp,
+        "request-id" -> UUID.randomUUID().toString,
+        "X-Ubirch-Gateway-Type" -> "mqtt",
         "X-Ubirch-Hardware-Id" -> deviceId.toString,
         "X-Ubirch-Auth-Type" -> "ubirch",
         "X-Ubirch-Credential" -> password)

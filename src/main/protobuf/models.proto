@@ -7,3 +7,8 @@ message FlowInPayload {
   string password = 2;
   bytes upp = 3;
 }
+
+message FlowOutPayload {
+  string status = 1;
+  bytes upp = 2;
+}
