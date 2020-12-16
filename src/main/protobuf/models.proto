@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package com.ubirch;
+
+message FlowInPayload {
+  string hardwareId = 1;
+  string password = 2;
+  bytes upp = 3;
+}
