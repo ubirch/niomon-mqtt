@@ -18,6 +18,8 @@ import scala.concurrent.Future
   * @param config the configuration object
   * @param lifecycle the life cycle object
   */
+
+@Singleton
 class RestService @Inject() (config: Config, lifecycle: Lifecycle) extends LazyLogging {
 
   val serverPort: Int = config.getInt(HttpServerConfPaths.PORT)
