@@ -17,4 +17,14 @@ package object ubirch {
   case class FailedKafkaPublish(deviceId: UUID, maybeThrowable: Option[Throwable])
     extends ServiceException(maybeThrowable.map(_.getMessage).getOrElse("Failed Publish"))
 
+  def REQUEST_ID = "request-id"
+  def X_UBIRCH_GATEWAY_TYPE = "X-Ubirch-Gateway-Type"
+  def X_UBIRCH_HARDWARE_ID = "X-Ubirch-Hardware-Id"
+  def X_UBIRCH_AUTH_TYPE = "X-Ubirch-Auth-Type"
+  def X_UBIRCH_CREDENTIAL = "X-Ubirch-Credential"
+  def HTTP_STATUS_CODE = "http-status-code"
+
+  def MQTT = "mqtt"
+  def UBIRCH = "ubirch"
+
 }

@@ -1,9 +1,9 @@
-package com.ubirch.services.flow
+package com.ubirch
+package services.flow
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import com.ubirch.ConfPaths.FlowInProducerConfPaths
-import com.ubirch.FailedKafkaPublish
 import com.ubirch.kafka.express.ExpressProducer
 import com.ubirch.kafka.producer.{ ProducerRunner, WithProducerShutdownHook }
 import com.ubirch.services.lifeCycle.Lifecycle
@@ -69,11 +69,11 @@ abstract class KafkaFlowInImpl(config: Config, lifecycle: Lifecycle)
   override def publish(deviceId: UUID, password: String, upp: Array[Byte]): Task[RecordMetadata] = Task.defer {
     Task.fromFuture {
       send(producerTopic, upp,
-        "request-id" -> UUID.randomUUID().toString,
-        "X-Ubirch-Gateway-Type" -> "mqtt",
-        "X-Ubirch-Hardware-Id" -> deviceId.toString,
-        "X-Ubirch-Auth-Type" -> "ubirch",
-        "X-Ubirch-Credential" -> password)
+        REQUEST_ID -> UUID.randomUUID().toString,
+        X_UBIRCH_GATEWAY_TYPE -> MQTT,
+        X_UBIRCH_HARDWARE_ID -> deviceId.toString,
+        X_UBIRCH_AUTH_TYPE -> UBIRCH,
+        X_UBIRCH_CREDENTIAL -> password)
     }
   }
 

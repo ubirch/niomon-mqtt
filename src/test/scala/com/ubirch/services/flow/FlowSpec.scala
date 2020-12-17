@@ -1,4 +1,5 @@
-package com.ubirch.services.flow
+package com.ubirch
+package services.flow
 
 import com.google.protobuf.ByteString
 import com.typesafe.config.Config
@@ -54,11 +55,11 @@ class FlowSpec extends TestBase with ExecutionContextsTests with EmbeddedMqtt wi
         val inPayloadFromKafka = consume[String, Array[Byte]](Set("ubirch-niomon-req-bin"), 1).getOrElse("ubirch-niomon-req-bin", Nil).head
 
         assert(util.Arrays.equals(inPayloadFromKafka.value(), inPayload.upp.toByteArray))
-        assert(inPayloadFromKafka.findHeader("request-id").isDefined)
-        assert(inPayloadFromKafka.findHeader("X-Ubirch-Gateway-Type").contains("mqtt"))
-        assert(inPayloadFromKafka.findHeader("X-Ubirch-Hardware-Id").contains(uuid.toString))
-        assert(inPayloadFromKafka.findHeader("X-Ubirch-Auth-Type").contains("ubirch"))
-        assert(inPayloadFromKafka.findHeader("X-Ubirch-Credential").contains("password"))
+        assert(inPayloadFromKafka.findHeader(REQUEST_ID).isDefined)
+        assert(inPayloadFromKafka.findHeader(X_UBIRCH_GATEWAY_TYPE).contains(MQTT))
+        assert(inPayloadFromKafka.findHeader(X_UBIRCH_HARDWARE_ID).contains(uuid.toString))
+        assert(inPayloadFromKafka.findHeader(X_UBIRCH_AUTH_TYPE).contains(UBIRCH))
+        assert(inPayloadFromKafka.findHeader(X_UBIRCH_CREDENTIAL).contains("password"))
         assert(mqttClients.async.isConnected)
 
       }

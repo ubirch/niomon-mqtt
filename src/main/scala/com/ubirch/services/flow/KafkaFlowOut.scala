@@ -1,4 +1,5 @@
-package com.ubirch.services.flow
+package com.ubirch
+package services.flow
 
 import com.google.protobuf.ByteString
 import com.typesafe.config.Config
@@ -71,9 +72,9 @@ class DefaultKafkaFlowOut @Inject() (
 
     crs.foreach { cr =>
       for {
-        deviceId <- cr.findHeader("x-ubirch-hardware-id").flatMap(x => Try(UUID.fromString(x)).toOption)
-        requestId <- cr.findHeader("request-id").flatMap(x => Try(UUID.fromString(x)).toOption)
-        status <- cr.findHeader("http-status-code")
+        requestId <- cr.findHeader(REQUEST_ID).flatMap(x => Try(UUID.fromString(x)).toOption)
+        deviceId <- cr.findHeader(X_UBIRCH_HARDWARE_ID).flatMap(x => Try(UUID.fromString(x)).toOption)
+        status <- cr.findHeader(HTTP_STATUS_CODE)
       } yield {
         logger.info(s"msg_back=$requestId")
         mqttFlowOut.process(deviceId, requestId, FlowOutPayload(status, ByteString.copyFrom(cr.value())))
