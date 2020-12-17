@@ -71,14 +71,15 @@ class DefaultKafkaFlowOut @Inject() (
   override val process: Process = Process { crs =>
 
     crs.foreach { cr =>
-      for {
+
+      (for {
         requestId <- cr.findHeader(REQUEST_ID).flatMap(x => Try(UUID.fromString(x)).toOption)
         deviceId <- cr.findHeader(X_UBIRCH_HARDWARE_ID).flatMap(x => Try(UUID.fromString(x)).toOption)
         status <- cr.findHeader(HTTP_STATUS_CODE)
       } yield {
         logger.info(s"msg_back=$requestId")
         mqttFlowOut.process(deviceId, requestId, FlowOutPayload(status, ByteString.copyFrom(cr.value())))
-      }
+      }).getOrElse(logger.warn("msg_back_incomplete"))
     }
 
   }

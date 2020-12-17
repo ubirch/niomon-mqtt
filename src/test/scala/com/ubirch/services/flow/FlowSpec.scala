@@ -6,18 +6,34 @@ import com.typesafe.config.Config
 import com.ubirch.ConfPaths.MqttConf
 import com.ubirch.kafka.util.Implicits.enrichedConsumerRecord
 import com.ubirch.kafka.util.PortGiver
-import com.ubirch.models.FlowInPayload
-import com.ubirch.{ EmbeddedMqtt, ExecutionContextsTests, InjectorHelperImpl, TestBase }
-import net.manub.embeddedkafka.Codecs.{ nullDeserializer, stringDeserializer }
+import com.ubirch.models.{ FlowInPayload, FlowOutPayload }
+import monix.eval.Task
+import net.manub.embeddedkafka.Codecs.{ nullDeserializer, nullSerializer, stringDeserializer }
 import net.manub.embeddedkafka.{ EmbeddedKafka, EmbeddedKafkaConfig, ExtendedEmbeddedKafkaHelpers }
+import org.apache.kafka.clients.producer.{ ProducerRecord, RecordMetadata }
+import org.apache.kafka.common.TopicPartition
+import org.apache.kafka.common.header.Header
+import org.apache.kafka.common.header.internals.{ RecordHeader, RecordHeaders }
 import org.scalatest.Tag
 
+import java.lang.{ Iterable => JIterable }
 import java.nio.charset.StandardCharsets
+import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Paths
 import java.util
-import java.util.UUID
+import java.util.concurrent.atomic.{ AtomicBoolean, AtomicReference }
+import java.util.{ Date, UUID }
+import scala.collection.JavaConverters._
+import scala.language.implicitConversions
 
 class FlowSpec extends TestBase with ExecutionContextsTests with EmbeddedMqtt with EmbeddedKafka with ExtendedEmbeddedKafkaHelpers[EmbeddedKafkaConfig] {
+
+  def pr[V](topic: String, value: V, headers: (String, String)*) = {
+    val headersIterable: JIterable[Header] = headers
+      .map(p => new RecordHeader(p._1, p._2.getBytes(UTF_8)): Header).asJava
+    val pm: ProducerRecord[String, V] = new ProducerRecord(topic, null, null, null.asInstanceOf[String], value, new RecordHeaders(headersIterable))
+    pm
+  }
 
   val mqttBroker = new MqttTest
 
@@ -32,6 +48,9 @@ class FlowSpec extends TestBase with ExecutionContextsTests with EmbeddedMqtt wi
 
       withRunningKafka {
 
+        def inTopic(deviceId: UUID): String = Paths.get(config.getString(MqttConf.IN_QUEUE_PREFIX), deviceId.toString).toString
+        def outTopic(deviceId: UUID): String = Paths.get(config.getString(MqttConf.OUT_QUEUE_PREFIX), deviceId.toString).toString
+
         val kafkaFlowOut: KafkaFlowOut = Injector.get[KafkaFlowOut]
         kafkaFlowOut.start()
 
@@ -39,11 +58,37 @@ class FlowSpec extends TestBase with ExecutionContextsTests with EmbeddedMqtt wi
         Injector.get[MqttFlowIn]
 
         val mqttPublisher: MqttPublisher = Injector.get[MqttPublisher]
+        val mqttSubscriber: MqttSubscriber = Injector.get[MqttSubscriber]
+
         val uuid = UUID.randomUUID()
 
-        def topic(deviceId: UUID): String = Paths.get(config.getString(MqttConf.IN_QUEUE_PREFIX), deviceId.toString).toString
+        val c = new AtomicBoolean(false)
+        val flowOut = new AtomicReference[FlowOutPayload](null)
+
+        mqttSubscriber.subscribe(outTopic(uuid), 1)((_, m) => {
+          try {
+            val payload = FlowOutPayload.parseFrom(m.getPayload)
+            flowOut.set(payload)
+            c.set(true)
+          } catch {
+            case e: Exception => e.printStackTrace()
+          }
+
+          Task {
+            (new RecordMetadata(
+              new TopicPartition("topic", 1),
+              1,
+              1,
+              new Date().getTime,
+              1L,
+              1,
+              1
+            ), m)
+          }
+        })
+
         val inPayload = FlowInPayload(uuid.toString, "password", ByteString.copyFrom("hola", StandardCharsets.UTF_8))
-        mqttPublisher.publish(topic(uuid), uuid,
+        mqttPublisher.publish(inTopic(uuid), uuid,
           mqttPublisher.toMqttMessage(
             1,
             retained = false,
@@ -61,6 +106,18 @@ class FlowSpec extends TestBase with ExecutionContextsTests with EmbeddedMqtt wi
         assert(inPayloadFromKafka.findHeader(X_UBIRCH_AUTH_TYPE).contains(UBIRCH))
         assert(inPayloadFromKafka.findHeader(X_UBIRCH_CREDENTIAL).contains("password"))
         assert(mqttClients.async.isConnected)
+
+        publishToKafka(pr(
+          "ubirch-common-rsp-signed-bin",
+          inPayloadFromKafka.value(),
+          REQUEST_ID -> UUID.randomUUID().toString,
+          X_UBIRCH_HARDWARE_ID -> uuid.toString,
+          HTTP_STATUS_CODE -> "200"
+        ))
+
+        Thread.sleep(2000)
+        assert(flowOut.get().status == "200")
+        assert(c.get())
 
       }
 
