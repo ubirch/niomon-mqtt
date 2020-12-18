@@ -24,11 +24,18 @@ class DefaultMqttFlowIn @Inject() (config: Config, mqttSubscriber: MqttSubscribe
   private val qos = config.getInt(MqttConf.QOS)
 
   override def process(topic: String, message: MqttMessage): Task[(RecordMetadata, MqttMessage)] = {
-    val payload = FlowInPayload.parseFrom(message.getPayload)
-    val uuid = UUID.fromString(payload.hardwareId)
-    kafkaFlowIn
-      .publish(uuid, payload.password, payload.upp.toByteArray)
-      .map { rm => (rm, message) }
+    (for {
+      payload <- Task.delay(FlowInPayload.parseFrom(message.getPayload))
+      uuid <- Task.delay(UUID.fromString(payload.hardwareId))
+      _ = logger.info("mqtt_fi_message_uuid=" + uuid.toString)
+      rm <- kafkaFlowIn.publish(uuid, payload.password, payload.upp.toByteArray)
+      _ = logger.info("mqtt_fi_published=" + uuid.toString)
+    } yield {
+      (rm, message)
+    }).doOnFinish {
+      case Some(e) => Task.delay(logger.error("mqtt_fi_message_error -> ", e))
+    }
+
   }
 
   mqttSubscriber.subscribe(topic, qos)((t, mqm) => process(t, mqm))
