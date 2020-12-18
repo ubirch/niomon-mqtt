@@ -43,6 +43,7 @@ class DefaultMqttClients @Inject() (config: Config, lifecycle: Lifecycle) extend
       val connOpts = new MqttConnectOptions()
       connOpts.setUserName(userName)
       connOpts.setPassword(password.toCharArray)
+      connOpts.setMaxInflight(100000)
       connOpts.setCleanSession(true)
       client.connect(connOpts, null, MqttClients.listener(_ => {
         logger.info(s"mqtt_connected=OK @ $broker")
