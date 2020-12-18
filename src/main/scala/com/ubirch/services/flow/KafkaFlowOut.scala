@@ -14,9 +14,11 @@ import com.ubirch.services.lifeCycle.Lifecycle
 import com.ubirch.util.ServiceMetrics
 import io.prometheus.client.Counter
 import org.apache.kafka.common.serialization._
-
 import java.util.UUID
+
 import javax.inject._
+import net.logstash.logback.argument.StructuredArguments.v
+
 import scala.concurrent.ExecutionContext
 import scala.util.Try
 
@@ -76,10 +78,10 @@ class DefaultKafkaFlowOut @Inject() (
         requestId <- cr.findHeader(REQUEST_ID).flatMap(x => Try(UUID.fromString(x)).toOption)
         deviceId <- cr.findHeader(X_UBIRCH_HARDWARE_ID).flatMap(x => Try(UUID.fromString(x)).toOption)
         status <- cr.findHeader(HTTP_STATUS_CODE)
+        _ = logger.info("kafka_fo_message_uuid=" + deviceId.toString, v("requestId", requestId.toString))
       } yield {
-        logger.info(s"msg_back=$requestId")
-        mqttFlowOut.process(deviceId, requestId, FlowOutPayload(status, ByteString.copyFrom(cr.value())))
-      }).getOrElse(logger.warn("msg_back_incomplete"))
+        mqttFlowOut.process(requestId, deviceId, FlowOutPayload(status, ByteString.copyFrom(cr.value())))
+      }).getOrElse(logger.warn("kafka_fo_message_incomplete"))
     }
 
   }

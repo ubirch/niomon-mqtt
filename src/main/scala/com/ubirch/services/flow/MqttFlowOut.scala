@@ -11,7 +11,7 @@ import java.util.UUID
 import javax.inject.{ Inject, Singleton }
 
 trait MqttFlowOut {
-  def process(deviceId: UUID, requestId: UUID, flowOutPayload: FlowOutPayload): IMqttDeliveryToken
+  def process(requestId: UUID, deviceId: UUID, flowOutPayload: FlowOutPayload): IMqttDeliveryToken
 }
 
 @Singleton
@@ -20,7 +20,7 @@ class DefaultMqttFlowOut @Inject() (config: Config, mqttPublisher: MqttPublisher
   private def topic(deviceId: UUID): String = Paths.get(config.getString(MqttConf.OUT_QUEUE_PREFIX), deviceId.toString).toString
   private val qos = config.getInt(MqttConf.QOS)
 
-  override def process(deviceId: UUID, requestId: UUID, flowOutPayload: FlowOutPayload): IMqttDeliveryToken = {
+  override def process(requestId: UUID, deviceId: UUID, flowOutPayload: FlowOutPayload): IMqttDeliveryToken = {
     val message = mqttPublisher.toMqttMessage(qos, retained = false, flowOutPayload.toByteArray)
     mqttPublisher.publish(topic(deviceId), deviceId, message)
   }

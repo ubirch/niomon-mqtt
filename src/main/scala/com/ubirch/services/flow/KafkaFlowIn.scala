@@ -12,21 +12,24 @@ import monix.execution.{ CancelableFuture, Scheduler }
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.serialization.{ ByteArraySerializer, Serializer, StringSerializer }
 import org.json4s.{ DefaultFormats, Formats }
-
 import java.util.UUID
+
 import javax.inject._
+import net.logstash.logback.argument.StructuredArguments.v
+
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration.{ FiniteDuration, _ }
 import scala.language.postfixOps
 
 trait KafkaFlowIn extends LazyLogging {
 
-  def publish(deviceId: UUID, password: String, upp: Array[Byte]): Task[RecordMetadata]
+  def publish(requestId: UUID, deviceId: UUID, password: String, upp: Array[Byte]): Task[RecordMetadata]
 
-  def publish_!(deviceId: UUID, password: String, upp: Array[Byte])(implicit scheduler: Scheduler): CancelableFuture[RecordMetadata] = publish(deviceId, password, upp).runToFuture
+  def publish_!(requestId: UUID, deviceId: UUID, password: String, upp: Array[Byte])(implicit scheduler: Scheduler): CancelableFuture[RecordMetadata] =
+    publish(requestId, deviceId, password, upp).runToFuture
 
-  def publishAsOpt(deviceId: UUID, password: String, upp: Array[Byte]): Task[Option[RecordMetadata]] = {
-    publish(deviceId, password, upp)
+  def publishAsOpt(requestId: UUID, deviceId: UUID, password: String, upp: Array[Byte]): Task[Option[RecordMetadata]] = {
+    publish(requestId, deviceId, password, upp)
       .map(x => Option(x))
       .onErrorHandle {
         e =>
@@ -35,13 +38,13 @@ trait KafkaFlowIn extends LazyLogging {
       }
   }
 
-  def publish(deviceId: UUID, password: String, upp: Array[Byte], timeout: FiniteDuration = 10 seconds): Task[(RecordMetadata, UUID)] = {
+  def publish(requestId: UUID, deviceId: UUID, password: String, upp: Array[Byte], timeout: FiniteDuration = 10 seconds): Task[(RecordMetadata, UUID)] = {
     for {
-      maybeRM <- publishAsOpt(deviceId, password, upp)
+      maybeRM <- publishAsOpt(requestId, deviceId, password, upp)
         .timeoutTo(timeout, Task.raiseError(FailedKafkaPublish(deviceId, Option(new TimeoutException(s"failed_publish_timeout=${timeout.toString()}")))))
         .onErrorHandleWith(e => Task.raiseError(FailedKafkaPublish(deviceId, Option(e))))
-      _ = if (maybeRM.isEmpty) logger.error("failed_publish={}", deviceId.toString)
-      _ = if (maybeRM.isDefined) logger.info("publish_succeeded_for={}", deviceId)
+      _ = if (maybeRM.isEmpty) logger.error(s"failed_publish=$deviceId", v("requestId", requestId.toString))
+      _ = if (maybeRM.isDefined) logger.info(s"publish_succeeded_for=$deviceId", v("requestId", requestId.toString))
       _ <- earlyResponseIf(maybeRM.isEmpty)(FailedKafkaPublish(deviceId, None))
     } yield {
       (maybeRM.get, deviceId)
@@ -66,10 +69,10 @@ abstract class KafkaFlowInImpl(config: Config, lifecycle: Lifecycle)
 
   val producerTopic: String = config.getString(FlowInProducerConfPaths.TOPIC_PATH)
 
-  override def publish(deviceId: UUID, password: String, upp: Array[Byte]): Task[RecordMetadata] = Task.defer {
+  override def publish(requestId: UUID, deviceId: UUID, password: String, upp: Array[Byte]): Task[RecordMetadata] = Task.defer {
     Task.fromFuture {
       send(producerTopic, upp,
-        REQUEST_ID -> UUID.randomUUID().toString,
+        REQUEST_ID -> requestId.toString,
         X_UBIRCH_GATEWAY_TYPE -> MQTT,
         X_UBIRCH_HARDWARE_ID -> deviceId.toString,
         X_UBIRCH_AUTH_TYPE -> UBIRCH,
