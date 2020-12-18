@@ -30,6 +30,7 @@ class DefaultMqttClients @Inject() (config: Config, lifecycle: Lifecycle) extend
   private val clientId = config.getString(MqttConf.CLIENT_ID)
   private val userName = config.getString(MqttConf.USER_NAME)
   private val password = config.getString(MqttConf.PASSWORD)
+  private val maxInFlight = config.getInt(MqttConf.MAX_IN_FLIGHT)
   private val client: IMqttAsyncClient = {
     val p = new CountDownLatch(1)
     val c = try {
@@ -38,13 +39,13 @@ class DefaultMqttClients @Inject() (config: Config, lifecycle: Lifecycle) extend
       val connOpts = new MqttConnectOptions()
       connOpts.setUserName(userName)
       connOpts.setPassword(password.toCharArray)
-      connOpts.setMaxInflight(100000)
+      connOpts.setMaxInflight(maxInFlight)
       connOpts.setCleanSession(true)
       client.connect(connOpts, null, listener(_ => {
-        logger.info(s"mqtt_connected=OK @ $broker")
+        logger.info(s"mqtt_connected=OK @ $broker with max_in_flight=$maxInFlight")
         p.countDown()
       }, (_, e) => {
-        logger.error(s"error_connecting to $broker", e)
+        logger.error(s"error_connecting to $broker with max_in_flight=$maxInFlight", e)
         p.countDown()
       }))
       client
