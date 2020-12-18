@@ -87,8 +87,11 @@ class FlowSpec extends TestBase with ExecutionContextsTests with EmbeddedMqtt wi
           }
         })
 
+        val requestId = UUID.randomUUID()
         val inPayload = FlowInPayload(uuid.toString, "password", ByteString.copyFrom("hola", StandardCharsets.UTF_8))
-        mqttPublisher.publish(inTopic(uuid), uuid,
+        mqttPublisher.publish(inTopic(uuid),
+          requestId,
+          uuid,
           mqttPublisher.toMqttMessage(
             1,
             retained = false,
@@ -110,7 +113,7 @@ class FlowSpec extends TestBase with ExecutionContextsTests with EmbeddedMqtt wi
         publishToKafka(pr(
           "ubirch-common-rsp-signed-bin",
           inPayloadFromKafka.value(),
-          REQUEST_ID -> UUID.randomUUID().toString,
+          REQUEST_ID -> requestId.toString,
           X_UBIRCH_HARDWARE_ID -> uuid.toString,
           HTTP_STATUS_CODE -> "200"
         ))

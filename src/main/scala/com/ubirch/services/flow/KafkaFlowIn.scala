@@ -33,7 +33,7 @@ trait KafkaFlowIn extends LazyLogging {
       .map(x => Option(x))
       .onErrorHandle {
         e =>
-          logger.error("Error publishing to kafka, deviceId={} exception={} error_message", deviceId.toString, e.getClass.getName, e.getMessage)
+          logger.error("Error publishing to kafka, deviceId={} exception={} error_message", deviceId.toString, e.getClass.getName, e.getMessage, v("requestId", requestId.toString))
           None
       }
   }

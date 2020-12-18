@@ -22,7 +22,7 @@ class DefaultMqttFlowOut @Inject() (config: Config, mqttPublisher: MqttPublisher
 
   override def process(requestId: UUID, deviceId: UUID, flowOutPayload: FlowOutPayload): IMqttDeliveryToken = {
     val message = mqttPublisher.toMqttMessage(qos, retained = false, flowOutPayload.toByteArray)
-    mqttPublisher.publish(topic(deviceId), deviceId, message)
+    mqttPublisher.publish(topic(deviceId), requestId, deviceId, message)
   }
 
 }
