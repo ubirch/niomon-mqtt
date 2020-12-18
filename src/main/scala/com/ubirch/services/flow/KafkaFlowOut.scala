@@ -74,14 +74,20 @@ class DefaultKafkaFlowOut @Inject() (
 
     crs.foreach { cr =>
 
+      val requestId = cr.findHeader(REQUEST_ID)
+      val hwId = cr.findHeader(X_UBIRCH_HARDWARE_ID)
+      val sts = cr.findHeader(HTTP_STATUS_CODE).orElse(Option("200"))
+
       (for {
-        requestId <- cr.findHeader(REQUEST_ID).flatMap(x => Try(UUID.fromString(x)).toOption)
-        deviceId <- cr.findHeader(X_UBIRCH_HARDWARE_ID).flatMap(x => Try(UUID.fromString(x)).toOption)
-        status <- cr.findHeader(HTTP_STATUS_CODE)
+        requestId <- requestId.flatMap(x => Try(UUID.fromString(x)).toOption)
+        deviceId <- hwId.flatMap(x => Try(UUID.fromString(x)).toOption)
+        status <- sts
         _ = logger.info("kafka_fo_message_uuid=" + deviceId.toString, v("requestId", requestId.toString))
       } yield {
         mqttFlowOut.process(requestId, deviceId, FlowOutPayload(status, ByteString.copyFrom(cr.value())))
-      }).getOrElse(logger.warn("kafka_fo_message_incomplete"))
+      }).getOrElse{
+        logger.warn("kafka_fo_message_incomplete", v("requestId", requestId.getOrElse("no-request-id")))
+      }
     }
 
   }
