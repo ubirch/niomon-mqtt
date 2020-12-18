@@ -1,0 +1,19 @@
+@startuml
+
+actor client #red
+client->MqttBroker: connects
+client->MqttBroker: subscribes to response topic
+client->MqttBroker: publishes mqtt message with upp
+MqttBroker -> MqttFlowIn: sends mqtt message
+MqttFlowIn->MqttFlowIn : unpacks mqtt message
+MqttFlowIn->KafkaFlowIn: sends upp and credentials
+KafkaFlowIn->KafkaFlowIn: prepares needed kafka message
+KafkaFlowIn->NiomonAuth: sends upp to kafak
+NiomonAuth->NiomonX: sends to other Niomon Services
+NiomonX->NiomonSigner: sends response
+NiomonSigner->KafkaFlowOut: sends signed upp
+KafkaFlowOut->MqttFlowOut: checks for upp and headers
+MqttFlowOut->MqttFlowOut: prepares response mqtt message
+MqttFlowOut->MqttBroker: publishes response to response topic
+MqttBroker->client: sends response
+@enduml
