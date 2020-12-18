@@ -13,10 +13,6 @@ import scala.concurrent.Future
 
 trait MqttClients {
   def async: IMqttAsyncClient
-}
-
-object MqttClients {
-
   def listener(success: IMqttToken => Unit, failure: (IMqttToken, Throwable) => Unit): IMqttActionListener = new IMqttActionListener {
     override def onSuccess(asyncActionToken: IMqttToken): Unit = {
       success(asyncActionToken)
@@ -25,7 +21,6 @@ object MqttClients {
       failure(asyncActionToken, exception)
     }
   }
-
 }
 
 @Singleton
@@ -45,7 +40,7 @@ class DefaultMqttClients @Inject() (config: Config, lifecycle: Lifecycle) extend
       connOpts.setPassword(password.toCharArray)
       connOpts.setMaxInflight(100000)
       connOpts.setCleanSession(true)
-      client.connect(connOpts, null, MqttClients.listener(_ => {
+      client.connect(connOpts, null, listener(_ => {
         logger.info(s"mqtt_connected=OK @ $broker")
         p.countDown()
       }, (_, e) => {

@@ -21,7 +21,7 @@ class DefaultMqttSubscriber @Inject() (mqttClients: MqttClients)(implicit schedu
         topic,
         qos,
         null,
-        MqttClients.listener(_ => logger.info(s"subscribed_to=$topic"), (_, e) => logger.error(s"error_subscribing_to=$topic", e)),
+        mqttClients.listener(_ => logger.info(s"subscribed_to=$topic"), (_, e) => logger.error(s"error_subscribing_to=$topic", e)),
         (topic: String, message: MqttMessage) => process(topic, message).runToFuture
       )
     } else {

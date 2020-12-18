@@ -85,7 +85,7 @@ class DefaultKafkaFlowOut @Inject() (
         _ = logger.info("kafka_fo_message_uuid=" + deviceId.toString, v("requestId", requestId.toString))
       } yield {
         mqttFlowOut.process(requestId, deviceId, FlowOutPayload(status, ByteString.copyFrom(cr.value())))
-      }).getOrElse{
+      }).getOrElse {
         logger.warn("kafka_fo_message_incomplete", v("requestId", requestId.getOrElse("no-request-id")))
       }
     }

@@ -89,14 +89,16 @@ class FlowSpec extends TestBase with ExecutionContextsTests with EmbeddedMqtt wi
 
         val requestId = UUID.randomUUID()
         val inPayload = FlowInPayload(uuid.toString, "password", ByteString.copyFrom("hola", StandardCharsets.UTF_8))
-        mqttPublisher.publish(inTopic(uuid),
+        mqttPublisher.publish(
+          inTopic(uuid),
           requestId,
           uuid,
           mqttPublisher.toMqttMessage(
             1,
             retained = false,
             inPayload.toByteArray
-          ))
+          )
+        )
 
         Thread.sleep(5000)
 
