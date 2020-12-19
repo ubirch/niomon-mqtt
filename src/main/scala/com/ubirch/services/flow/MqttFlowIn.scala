@@ -11,6 +11,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage
 import java.nio.file.Paths
 import java.util.UUID
 
+import io.prometheus.client.Counter
 import javax.inject.{ Inject, Singleton }
 import net.logstash.logback.argument.StructuredArguments.v
 
@@ -24,7 +25,15 @@ class DefaultMqttFlowIn @Inject() (config: Config, mqttSubscriber: MqttSubscribe
   private val topic = Paths.get(config.getString(MqttConf.IN_QUEUE_PREFIX), "+").toString
   private val qos = config.getInt(MqttConf.QOS)
 
+  private val flowInCounter: Counter = Counter.build()
+    .name("mqtt_fi")
+    .help("Represents the number of incoming mqtt flow-ins")
+    .labelNames("service")
+    .register()
+
   override def process(topic: String, message: MqttMessage): Task[(RecordMetadata, MqttMessage)] = {
+    flowInCounter.labels("mqtt").inc()
+
     (for {
       _ <- Task.unit
       requestId = UUID.randomUUID()

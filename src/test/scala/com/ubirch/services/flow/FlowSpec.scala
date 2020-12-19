@@ -15,7 +15,6 @@ import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.header.Header
 import org.apache.kafka.common.header.internals.{ RecordHeader, RecordHeaders }
 import org.scalatest.Tag
-
 import java.lang.{ Iterable => JIterable }
 import java.nio.charset.StandardCharsets
 import java.nio.charset.StandardCharsets.UTF_8
@@ -23,6 +22,9 @@ import java.nio.file.Paths
 import java.util
 import java.util.concurrent.atomic.{ AtomicBoolean, AtomicReference }
 import java.util.{ Date, UUID }
+
+import io.prometheus.client.CollectorRegistry
+
 import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 
@@ -128,6 +130,10 @@ class FlowSpec extends TestBase with ExecutionContextsTests with EmbeddedMqtt wi
 
     }
 
+  }
+
+  override protected def beforeEach(): Unit = {
+    CollectorRegistry.defaultRegistry.clear()
   }
 
   override protected def beforeAll(): Unit = {
