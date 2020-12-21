@@ -1,11 +1,12 @@
 package com.ubirch.services.execution
 
+import java.util.concurrent.Executors
+
 import com.typesafe.config.Config
 import com.ubirch.ConfPaths.ExecutionContextConfPaths
+import javax.inject._
 import monix.execution.Scheduler
 
-import java.util.concurrent.Executors
-import javax.inject._
 import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
 
 /**

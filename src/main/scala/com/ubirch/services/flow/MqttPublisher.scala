@@ -1,11 +1,11 @@
 package com.ubirch.services.flow
 
-import com.typesafe.scalalogging.LazyLogging
-import org.eclipse.paho.client.mqttv3.{ IMqttDeliveryToken, MqttMessage }
 import java.util.UUID
 
+import com.typesafe.scalalogging.LazyLogging
 import javax.inject.{ Inject, Singleton }
 import net.logstash.logback.argument.StructuredArguments.v
+import org.eclipse.paho.client.mqttv3.{ IMqttDeliveryToken, MqttMessage }
 
 trait MqttPublisher {
   def toMqttMessage(qos: Int, retained: Boolean, payload: Array[Byte]): MqttMessage

@@ -1,20 +1,6 @@
 package com.ubirch
 package services.flow
 
-import com.google.protobuf.ByteString
-import com.typesafe.config.Config
-import com.ubirch.ConfPaths.MqttConf
-import com.ubirch.kafka.util.Implicits.enrichedConsumerRecord
-import com.ubirch.kafka.util.PortGiver
-import com.ubirch.models.{ FlowInPayload, FlowOutPayload }
-import monix.eval.Task
-import net.manub.embeddedkafka.Codecs.{ nullDeserializer, nullSerializer, stringDeserializer }
-import net.manub.embeddedkafka.{ EmbeddedKafka, EmbeddedKafkaConfig, ExtendedEmbeddedKafkaHelpers }
-import org.apache.kafka.clients.producer.{ ProducerRecord, RecordMetadata }
-import org.apache.kafka.common.TopicPartition
-import org.apache.kafka.common.header.Header
-import org.apache.kafka.common.header.internals.{ RecordHeader, RecordHeaders }
-import org.scalatest.Tag
 import java.lang.{ Iterable => JIterable }
 import java.nio.charset.StandardCharsets
 import java.nio.charset.StandardCharsets.UTF_8
@@ -23,7 +9,22 @@ import java.util
 import java.util.concurrent.atomic.{ AtomicBoolean, AtomicReference }
 import java.util.{ Date, UUID }
 
+import com.google.protobuf.ByteString
+import com.typesafe.config.Config
+import com.ubirch.ConfPaths.MqttConf
+import com.ubirch.kafka.util.Implicits.enrichedConsumerRecord
+import com.ubirch.kafka.util.PortGiver
+import com.ubirch.models.{ FlowInPayload, FlowOutPayload }
+import com.ubirch.util.DateUtil
 import io.prometheus.client.CollectorRegistry
+import monix.eval.Task
+import net.manub.embeddedkafka.Codecs.{ nullDeserializer, nullSerializer, stringDeserializer }
+import net.manub.embeddedkafka.{ EmbeddedKafka, EmbeddedKafkaConfig, ExtendedEmbeddedKafkaHelpers }
+import org.apache.kafka.clients.producer.{ ProducerRecord, RecordMetadata }
+import org.apache.kafka.common.TopicPartition
+import org.apache.kafka.common.header.Header
+import org.apache.kafka.common.header.internals.{ RecordHeader, RecordHeaders }
+import org.scalatest.Tag
 
 import scala.collection.JavaConverters._
 import scala.language.implicitConversions
@@ -111,6 +112,7 @@ class FlowSpec extends TestBase with ExecutionContextsTests with EmbeddedMqtt wi
         assert(inPayloadFromKafka.findHeader(X_UBIRCH_GATEWAY_TYPE).contains(MQTT))
         assert(inPayloadFromKafka.findHeader(X_UBIRCH_HARDWARE_ID).contains(uuid.toString))
         assert(inPayloadFromKafka.findHeader(X_UBIRCH_AUTH_TYPE).contains(UBIRCH))
+        assert(inPayloadFromKafka.findHeader(X_ENTRY_TIME).map(DateUtil.parseToUTC).map(_.isSuccess).isDefined)
         assert(inPayloadFromKafka.findHeader(X_UBIRCH_CREDENTIAL).contains("password"))
         assert(mqttClients.async.isConnected)
 

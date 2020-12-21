@@ -1,14 +1,15 @@
 package com.ubirch.services.metrics
 
+import java.net.BindException
+
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import com.ubirch.ConfPaths.PrometheusConfPaths
 import com.ubirch.services.lifeCycle.Lifecycle
 import io.prometheus.client.exporter.HTTPServer
 import io.prometheus.client.hotspot.DefaultExports
-
-import java.net.BindException
 import javax.inject._
+
 import scala.annotation.tailrec
 import scala.concurrent.Future
 

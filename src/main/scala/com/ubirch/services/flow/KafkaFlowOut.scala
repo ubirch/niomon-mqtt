@@ -1,6 +1,8 @@
 package com.ubirch
 package services.flow
 
+import java.util.UUID
+
 import com.google.protobuf.ByteString
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
@@ -11,16 +13,14 @@ import com.ubirch.kafka.producer.WithProducerShutdownHook
 import com.ubirch.kafka.util.Implicits.enrichedConsumerRecord
 import com.ubirch.models.FlowOutPayload
 import com.ubirch.services.lifeCycle.Lifecycle
-import com.ubirch.util.ServiceMetrics
+import com.ubirch.util.{ DateUtil, ServiceMetrics }
 import io.prometheus.client.Counter
-import org.apache.kafka.common.serialization._
-import java.util.UUID
-
 import javax.inject._
 import net.logstash.logback.argument.StructuredArguments.v
+import org.apache.kafka.common.serialization._
 
 import scala.concurrent.ExecutionContext
-import scala.util.Try
+import scala.util.{ Failure, Try }
 
 abstract class KafkaFlowOut(val config: Config, lifecycle: Lifecycle)
   extends ExpressKafka[String, Array[Byte], Unit]
@@ -77,6 +77,7 @@ class DefaultKafkaFlowOut @Inject() (
       val requestId = cr.findHeader(REQUEST_ID)
       val hwId = cr.findHeader(X_UBIRCH_HARDWARE_ID)
       val sts = cr.findHeader(HTTP_STATUS_CODE).orElse(Option("200"))
+      val entryTime = cr.findHeader(X_ENTRY_TIME).map(DateUtil.parseToUTC).getOrElse(Failure(NoEntryTimeException))
 
       (for {
         requestId <- requestId.flatMap(x => Try(UUID.fromString(x)).toOption)
