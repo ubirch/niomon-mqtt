@@ -7,12 +7,16 @@ import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import com.ubirch.ConfPaths.MqttConf
 import com.ubirch.models.FlowOutPayload
+import com.ubirch.util.DateUtil
 import io.prometheus.client.Counter
 import javax.inject.{ Inject, Singleton }
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
+import org.joda.time.DateTime
+
+import scala.util.Try
 
 trait MqttFlowOut {
-  def process(requestId: UUID, deviceId: UUID, flowOutPayload: FlowOutPayload): IMqttDeliveryToken
+  def process(requestId: UUID, deviceId: UUID, flowOutPayload: FlowOutPayload, entryTime: Try[DateTime]): IMqttDeliveryToken
 }
 
 @Singleton
@@ -27,8 +31,9 @@ class DefaultMqttFlowOut @Inject() (config: Config, mqttPublisher: MqttPublisher
     .labelNames("service")
     .register()
 
-  override def process(requestId: UUID, deviceId: UUID, flowOutPayload: FlowOutPayload): IMqttDeliveryToken = {
+  override def process(requestId: UUID, deviceId: UUID, flowOutPayload: FlowOutPayload, entryTime: Try[DateTime]): IMqttDeliveryToken = {
     flowOutCounter.labels("mqtt").inc()
+    //val duration = entryTime.map(DateUtil.duration).map(x => logger.info("duration=" + x.toString))
     val message = mqttPublisher.toMqttMessage(qos, retained = false, flowOutPayload.toByteArray)
     mqttPublisher.publish(topic(deviceId), requestId, deviceId, message)
   }

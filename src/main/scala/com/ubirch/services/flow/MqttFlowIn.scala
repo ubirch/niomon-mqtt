@@ -43,7 +43,7 @@ class DefaultMqttFlowIn @Inject() (config: Config, mqttSubscriber: MqttSubscribe
       requestId = UUID.randomUUID()
       payload <- Task.delay(FlowInPayload.parseFrom(message.getPayload))
       uuid <- Task.delay(UUID.fromString(payload.hardwareId))
-      _ = logger.info("mqtt_fi_message_uuid=" + uuid.toString, v("requestId", requestId.toString))
+      _ = logger.debug("mqtt_fi_message_uuid=" + uuid.toString, v("requestId", requestId.toString))
       rm <- kafkaFlowIn.publish(requestId, uuid, payload.password, payload.upp.toByteArray, 10 seconds, DateUtil.nowUTC)
       _ = logger.info("mqtt_fi_published=" + uuid.toString, v("requestId", requestId.toString))
     } yield {

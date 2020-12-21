@@ -47,6 +47,8 @@ object DateUtil {
 
   def duration(start: DateTime, end: DateTime): Duration = new Duration(start, end).abs()
 
+  val duration: DateTime => Duration = start => duration(start, nowUTC)
+
   def parseToUTC(date: String): Try[DateTime] = Try(UTCformatter.parseDateTime(date).withZone(DateTimeZone.UTC))
 
 }

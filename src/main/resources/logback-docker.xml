@@ -38,10 +38,10 @@
 
     <logger name="io.netty" level="WARN"/>
 
-    <logger name="com.ubirch" level="DEBUG"/>
+    <logger name="com.ubirch" level="INFO"/>
     <logger name="com.ubirch.kafka" level="WARN"/>
 
-    <root level="WARN">
+    <root level="INFO">
         <appender-ref ref="JSONSTDOUT"/>
     </root>
 

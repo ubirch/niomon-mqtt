@@ -41,7 +41,7 @@ trait KafkaFlowIn extends LazyLogging {
         .timeoutTo(timeout, Task.raiseError(FailedKafkaPublish(deviceId, Option(new TimeoutException(s"failed_publish_timeout=${timeout.toString()}")))))
         .onErrorHandleWith(e => Task.raiseError(FailedKafkaPublish(deviceId, Option(e))))
       _ = if (maybeRM.isEmpty) logger.error(s"failed_publish=$deviceId", v("requestId", requestId.toString))
-      _ = if (maybeRM.isDefined) logger.info(s"publish_succeeded_for=$deviceId", v("requestId", requestId.toString))
+      _ = if (maybeRM.isDefined) logger.debug(s"publish_succeeded_for=$deviceId", v("requestId", requestId.toString))
       _ <- earlyResponseIf(maybeRM.isEmpty)(FailedKafkaPublish(deviceId, None))
     } yield {
       (maybeRM.get, deviceId)
