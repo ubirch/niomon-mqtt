@@ -4,11 +4,11 @@ import org.apache.kafka.clients.consumer.{ ConsumerConfig, ConsumerRecord, Kafka
 import org.apache.kafka.common.serialization.Deserializer
 import org.apache.kafka.common.{ KafkaException, TopicPartition }
 
+import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 import scala.util.Try
-import scala.collection.JavaConverters._
 
 trait ExtendedEmbeddedKafkaHelpers[C <: EmbeddedKafkaConfig] {
 

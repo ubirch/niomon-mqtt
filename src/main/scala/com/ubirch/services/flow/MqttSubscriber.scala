@@ -1,12 +1,11 @@
 package com.ubirch.services.flow
 
 import com.typesafe.scalalogging.LazyLogging
-import org.eclipse.paho.client.mqttv3.MqttMessage
-
 import javax.inject.{ Inject, Singleton }
 import monix.eval.Task
 import monix.execution.Scheduler
 import org.apache.kafka.clients.producer.RecordMetadata
+import org.eclipse.paho.client.mqttv3.MqttMessage
 
 trait MqttSubscriber {
   def subscribe(topic: String, qos: Int)(process: (String, MqttMessage) => Task[(RecordMetadata, MqttMessage)]): Unit

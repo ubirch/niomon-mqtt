@@ -1,8 +1,12 @@
 package com.ubirch.controllers.concerns
 
+import java.io.ByteArrayInputStream
+
 import com.typesafe.scalalogging.LazyLogging
 import com.ubirch.models.NOK
 import com.ubirch.util.ServiceMetrics
+import javax.servlet.http.{ HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse }
+import javax.servlet.{ ReadListener, ServletInputStream }
 import monix.eval.Task
 import monix.execution.{ CancelableFuture, Scheduler }
 import org.apache.commons.compress.utils.IOUtils
@@ -10,9 +14,6 @@ import org.scalatra._
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.swagger.SwaggerSupport
 
-import java.io.ByteArrayInputStream
-import javax.servlet.http.{ HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse }
-import javax.servlet.{ ReadListener, ServletInputStream }
 import scala.util.Try
 import scala.util.control.NoStackTrace
 

@@ -1,11 +1,12 @@
 package com.ubirch
 
+import java.util.concurrent.CountDownLatch
+
 import com.typesafe.scalalogging.LazyLogging
 import com.ubirch.services.flow.{ KafkaFlowOut, MqttFlowIn, MqttFlowOut }
 import com.ubirch.services.rest.RestService
-
-import java.util.concurrent.CountDownLatch
 import javax.inject.{ Inject, Singleton }
+
 import scala.util.Try
 
 /**

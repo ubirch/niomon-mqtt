@@ -1,6 +1,7 @@
 package com
 
 import java.util.UUID
+
 import scala.util.control.NoStackTrace
 
 package object ubirch {
@@ -14,6 +15,8 @@ package object ubirch {
     val name: String = this.getClass.getCanonicalName
   }
 
+  case object NoEntryTimeException extends ServiceException("No Entry Time")
+
   case class FailedKafkaPublish(deviceId: UUID, maybeThrowable: Option[Throwable])
     extends ServiceException(maybeThrowable.map(_.getMessage).getOrElse("Failed Publish"))
 
@@ -23,6 +26,7 @@ package object ubirch {
   def X_UBIRCH_AUTH_TYPE = "X-Ubirch-Auth-Type"
   def X_UBIRCH_CREDENTIAL = "X-Ubirch-Credential"
   def HTTP_STATUS_CODE = "http-status-code"
+  def X_ENTRY_TIME = "X-Entry-Time"
 
   def MQTT = "mqtt"
   def UBIRCH = "ubirch"
