@@ -29,11 +29,11 @@ class DefaultMqttFlowOut @Inject() (config: Config, mqttPublisher: MqttPublisher
   private val flowOutCounter: Counter = Counter.build()
     .name("mqtt_fo")
     .help("Represents the number of incoming mqtt flow-outs")
-    .labelNames("service")
+    .labelNames("service", "status")
     .register()
 
   override def process(requestId: UUID, deviceId: UUID, flowOutPayload: FlowOutPayload, entryTime: Try[DateTime]): IMqttDeliveryToken = {
-    flowOutCounter.labels("mqtt").inc()
+    flowOutCounter.labels("mqtt", flowOutPayload.status).inc()
     val duration = entryTime.map(DateUtil.duration)
     val destination = topic(deviceId)
     val message = mqttPublisher.toMqttMessage(qos, retained = false, flowOutPayload.toByteArray)
