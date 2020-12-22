@@ -33,15 +33,15 @@ abstract class KafkaFlowOut(val config: Config, lifecycle: Lifecycle)
   override val service: String = config.getString(GenericConfPaths.NAME)
 
   override val successCounter: Counter = Counter.build()
-    .name("bridge_mgr_success")
-    .help("Represents the number bridge successes")
-    .labelNames("service", "bridge")
+    .name("kafka_fo_mgr_success")
+    .help("Represents the number of kafka flow outs successes")
+    .labelNames("service", "mqtt")
     .register()
 
   override val errorCounter: Counter = Counter.build()
-    .name("bridge_mgr_failures")
-    .help("Represents the number of bridge failures")
-    .labelNames("service", "bridge")
+    .name("kafka_fo_mgr_failures")
+    .help("Represents the number of kafka flow outs failures")
+    .labelNames("service", "mqtt")
     .register()
 
   override val keyDeserializer: Deserializer[String] = new StringDeserializer
