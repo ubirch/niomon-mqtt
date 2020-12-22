@@ -14,6 +14,10 @@ import scala.concurrent.Future
 
 trait MqttClients {
   def async: IMqttAsyncClient
+  def listener(success: IMqttToken => Unit, failure: (IMqttToken, Throwable) => Unit): IMqttActionListener = MqttClients.listener(success, failure)
+}
+
+object MqttClients {
   def listener(success: IMqttToken => Unit, failure: (IMqttToken, Throwable) => Unit): IMqttActionListener = new IMqttActionListener {
     override def onSuccess(asyncActionToken: IMqttToken): Unit = {
       success(asyncActionToken)
