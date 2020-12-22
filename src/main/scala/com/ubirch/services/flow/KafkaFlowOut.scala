@@ -6,15 +6,14 @@ import java.util.UUID
 import com.google.protobuf.ByteString
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
-import com.ubirch.ConfPaths.{ FlowOutConsumerConfPaths, FlowOutProducerConfPaths, GenericConfPaths }
+import com.ubirch.ConfPaths.{ FlowOutConsumerConfPaths, FlowOutProducerConfPaths }
 import com.ubirch.kafka.consumer.WithConsumerShutdownHook
 import com.ubirch.kafka.express.ExpressKafka
 import com.ubirch.kafka.producer.WithProducerShutdownHook
 import com.ubirch.kafka.util.Implicits.enrichedConsumerRecord
 import com.ubirch.models.FlowOutPayload
 import com.ubirch.services.lifeCycle.Lifecycle
-import com.ubirch.util.{ DateUtil, ServiceMetrics }
-import io.prometheus.client.Counter
+import com.ubirch.util.DateUtil
 import javax.inject._
 import net.logstash.logback.argument.StructuredArguments.v
 import org.apache.kafka.common.serialization._
@@ -27,22 +26,7 @@ abstract class KafkaFlowOut(val config: Config, lifecycle: Lifecycle)
   extends ExpressKafka[String, Array[Byte], Unit]
   with WithConsumerShutdownHook
   with WithProducerShutdownHook
-  with ServiceMetrics
   with LazyLogging {
-
-  override val service: String = config.getString(GenericConfPaths.NAME)
-
-  override val successCounter: Counter = Counter.build()
-    .name("kafka_fo_mgr_success")
-    .help("Represents the number of kafka flow outs successes")
-    .labelNames("service", "mqtt")
-    .register()
-
-  override val errorCounter: Counter = Counter.build()
-    .name("kafka_fo_mgr_failures")
-    .help("Represents the number of kafka flow outs failures")
-    .labelNames("service", "mqtt")
-    .register()
 
   override val keyDeserializer: Deserializer[String] = new StringDeserializer
   override val valueDeserializer: Deserializer[Array[Byte]] = new ByteArrayDeserializer
