@@ -32,9 +32,18 @@ class DefaultMqttFlowOut @Inject() (config: Config, mqttPublisher: MqttPublisher
     .labelNames("service", "status")
     .register()
 
+  private val durationCounter: Counter = Counter.build
+    .name("mqtt_fi_fo_duration")
+    .help("Mqtt FI-FO duration")
+    .labelNames("service")
+    .register()
+
   override def process(requestId: UUID, deviceId: UUID, flowOutPayload: FlowOutPayload, entryTime: Try[DateTime]): IMqttDeliveryToken = {
-    flowOutCounter.labels("mqtt", flowOutPayload.status).inc()
     val duration = entryTime.map(DateUtil.duration)
+
+    flowOutCounter.labels("mqtt", flowOutPayload.status).inc()
+    duration.foreach { d => durationCounter.labels("mqtt").inc(d.getMillis) }
+
     val destination = topic(deviceId)
     val message = mqttPublisher.toMqttMessage(qos, retained = false, flowOutPayload.toByteArray)
     mqttPublisher.publish(destination, requestId, deviceId, message, MqttClients.listener(
