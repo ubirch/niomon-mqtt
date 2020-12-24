@@ -75,10 +75,11 @@ class DefaultKafkaFlowOut @Inject() (
     }
   }
 
-  override val process: Process = Process.async { crs =>
-    Task.sequence { crs.map { cr => logic(cr) } }
-      .flatMap(_ => Task.unit)
-      .runToFuture
+  override val process: Process = Process.task { crs =>
+    Task.defer {
+      Task.sequence(crs.map(logic))
+        .flatMap(_ => Task.unit)
+    }
   }
 
   override def prefix: String = "Ubirch"

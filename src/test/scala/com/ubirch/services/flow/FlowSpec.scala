@@ -125,6 +125,7 @@ class FlowSpec extends TestBase with ExecutionContextsTests with EmbeddedMqtt wi
         ))
 
         Thread.sleep(2000)
+        assert(flowOut.get() != null)
         assert(flowOut.get().status == "200")
         assert(c.get())
 
