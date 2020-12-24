@@ -15,11 +15,13 @@ import com.ubirch.models.FlowOutPayload
 import com.ubirch.services.lifeCycle.Lifecycle
 import com.ubirch.util.DateUtil
 import javax.inject._
+import monix.eval.Task
+import monix.execution.Scheduler
 import net.logstash.logback.argument.StructuredArguments.v
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.serialization._
 import org.joda.time.DateTime
 
-import scala.concurrent.ExecutionContext
 import scala.util.{ Failure, Try }
 
 abstract class KafkaFlowOut(val config: Config, lifecycle: Lifecycle)
@@ -53,29 +55,30 @@ class DefaultKafkaFlowOut @Inject() (
     mqttFlowOut: MqttFlowOut,
     config: Config,
     lifecycle: Lifecycle
-)(implicit val ec: ExecutionContext) extends KafkaFlowOut(config, lifecycle) {
+)(implicit val scheduler: Scheduler) extends KafkaFlowOut(config, lifecycle) {
 
-  override val process: Process = Process { crs =>
+  def logic(cr: ConsumerRecord[String, Array[Byte]]): Task[Unit] = Task.delay {
+    val requestId = cr.findHeader(REQUEST_ID)
+    val hwId = cr.findHeader(X_UBIRCH_HARDWARE_ID)
+    val sts = cr.findHeader(HTTP_STATUS_CODE).orElse(Option("200"))
+    val entryTime: Try[DateTime] = cr.findHeader(X_ENTRY_TIME).map(DateUtil.parseToUTC).getOrElse(Failure(NoEntryTimeException))
 
-    crs.foreach { cr =>
-
-      val requestId = cr.findHeader(REQUEST_ID)
-      val hwId = cr.findHeader(X_UBIRCH_HARDWARE_ID)
-      val sts = cr.findHeader(HTTP_STATUS_CODE).orElse(Option("200"))
-      val entryTime: Try[DateTime] = cr.findHeader(X_ENTRY_TIME).map(DateUtil.parseToUTC).getOrElse(Failure(NoEntryTimeException))
-
-      (for {
-        requestId <- requestId.flatMap(x => Try(UUID.fromString(x)).toOption)
-        deviceId <- hwId.flatMap(x => Try(UUID.fromString(x)).toOption)
-        status <- sts
-        _ = logger.debug("kafka_fo_message_uuid=" + deviceId.toString, v("requestId", requestId.toString))
-      } yield {
-        mqttFlowOut.process(requestId, deviceId, FlowOutPayload(status, ByteString.copyFrom(cr.value())), entryTime)
-      }).getOrElse {
-        logger.warn("kafka_fo_message_incomplete", v("requestId", requestId.getOrElse("no-request-id")))
-      }
+    (for {
+      requestId <- requestId.flatMap(x => Try(UUID.fromString(x)).toOption)
+      deviceId <- hwId.flatMap(x => Try(UUID.fromString(x)).toOption)
+      status <- sts
+      _ = logger.debug("kafka_fo_message_uuid=" + deviceId.toString, v("requestId", requestId.toString))
+    } yield {
+      mqttFlowOut.process(requestId, deviceId, FlowOutPayload(status, ByteString.copyFrom(cr.value())), entryTime)
+    }).getOrElse {
+      logger.warn("kafka_fo_message_incomplete", v("requestId", requestId.getOrElse("no-request-id")))
     }
+  }
 
+  override val process: Process = Process.async { crs =>
+    Task.sequence { crs.map { cr => logic(cr) } }
+      .flatMap(_ => Task.unit)
+      .runToFuture
   }
 
   override def prefix: String = "Ubirch"
